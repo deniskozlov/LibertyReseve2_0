@@ -267,8 +267,13 @@ def analyze():
     })
     totals = {"messages": 0, "text_messages": 0, "attachments": 0, "replies": 0}
 
+    ignored_users = set()
+    if os.path.exists("ignored_users.txt"):
+        with open("ignored_users.txt", "r", encoding="utf-8") as f:
+            ignored_users = {line.strip() for line in f if line.strip()}
+
     for msg in iter_messages():
-        if msg.user == "DELETED":
+        if msg.user == "DELETED" or msg.user in ignored_users:
             continue
         totals["messages"] += 1
         if msg.text:
@@ -358,7 +363,7 @@ def generate(totals, participants, days, topics):
     os.makedirs(os.path.join(WIKI_DIR, "Лор"), exist_ok=True)
 
     expected_files = {
-        "Участники": {"Топ Участников.md"} | {f"{safe_filename(name)}.md" for name in participants},
+        "Участники": {"Топ Участников.md", "Игнорируемые участники.md"} | {f"{safe_filename(name)}.md" for name in participants},
         "Темы": {"Популярные темы.md"} | {f"{safe_filename(topic)}.md" for topic in topics},
         "История": {"Хронология.md", "Ключевые моменты.md", "Как читать источники.md", "Эволюция и психоанализ.md"},
         "Лор": {"Внутренний лор.md", "Словарь чата.md", "Дед.md", "Усам.md", "Бобик.md", "Данил.md", "Роман Нечунаев.md", "Кирилл Гриненко.md", "Дмитрий Ерохин.md", "Дмитрий Караваев.md", "Степа Степанов.md", "Мария Бобиренко.md"},
@@ -384,6 +389,7 @@ def generate(totals, participants, days, topics):
         "",
         "## Навигация",
         "- [[Участники/Топ Участников|Участники и роли]]",
+        "- [[Участники/Игнорируемые участники|Игнорируемые участники (неактивные в 2025-2026)]]",
         "- [[Темы/Популярные темы|Темы и обсуждения]]",
         "- [[История/Хронология|Хронология и всплески активности]]",
         "- [[История/Ключевые моменты|Ключевые моменты]]",
@@ -463,6 +469,23 @@ def generate(totals, participants, days, topics):
         "",
     ]
     write(os.path.join(WIKI_DIR, "Участники", "Топ Участников.md"), "\n".join(top_page))
+
+    ignored_users_list = []
+    if os.path.exists("ignored_users.txt"):
+        with open("ignored_users.txt", "r", encoding="utf-8") as f:
+            ignored_users_list = sorted([line.strip() for line in f if line.strip()])
+    
+    ignored_page = [
+        "# Игнорируемые участники",
+        "",
+        "В этот список автоматически добавлены участники, которые покинули чат или не проявляли никакой активности в 2025 и 2026 годах.",
+        "Они полностью исключены из анализа и их сообщения не учитываются в общей статистике.",
+        "",
+    ]
+    for u in ignored_users_list:
+        ignored_page.append(f"- {u}")
+    ignored_page.append("")
+    write(os.path.join(WIKI_DIR, "Участники", "Игнорируемые участники.md"), "\n".join(ignored_page))
 
     for name, data in top_participants:
         years_rows = [[year, fmt_count(count)] for year, count in sorted(data["years"].items())]
