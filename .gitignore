@@ -1,0 +1,12 @@
+*
+
+build_wiki.py
+
+!.gitignore
+
+!README.md
+
+!chats_raw/
+!chats_raw/**
+!Liberty_Reserve_Wiki/
+!Liberty_Reserve_Wiki/**
