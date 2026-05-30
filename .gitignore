@@ -8,5 +8,7 @@ build_wiki.py
 
 !chats_raw/
 !chats_raw/**
+!chats_raw_month/
+!chats_raw_month/**
 !Liberty_Reserve_Wiki/
 !Liberty_Reserve_Wiki/**
